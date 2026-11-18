@@ -1,0 +1,51 @@
+The system is: Windows - 10.0.26200 - AMD64
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler: C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.29.30133/bin/HostX64/x64/cl.exe 
+Build flags: 
+Id flags:  
+
+The output was:
+0
+Microsoft (R) C/C++ Optimizing Compiler Version 19.29.30159 for x64
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+CMakeCXXCompilerId.cpp
+Microsoft (R) Incremental Linker Version 14.29.30159.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+/out:CMakeCXXCompilerId.exe 
+CMakeCXXCompilerId.obj 
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CMakeCXXCompilerId.exe"
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CMakeCXXCompilerId.obj"
+
+The CXX compiler identification is MSVC, found in "C:/Users/srinivas.mareddi/Documents/DockableWindows/build/Desktop_Qt_5_15_2_MSVC2019_64bit_Debug/CMakeFiles/3.16.0-rc2/CompilerIdCXX/CMakeCXXCompilerId.exe"
+
+Determining if the CXX compiler works passed with the following output:
+Change Dir: C:/Users/srinivas.mareddi/Documents/DockableWindows/build/Desktop_Qt_5_15_2_MSVC2019_64bit_Debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):jom /nologo cmTC_b2a87\fast && jom: parallel job execution disabled for Makefile
+	C:\Qt\Tools\QtCreator\bin\jom\jom.exe -f CMakeFiles\cmTC_b2a87.dir\build.make /nologo -L CMakeFiles\cmTC_b2a87.dir\build
+Building CXX object CMakeFiles/cmTC_b2a87.dir/testCXXCompiler.cxx.obj
+	C:\PROGRA~1\MICROS~1\18\COMMUN~1\VC\Tools\MSVC\1429~1.301\bin\HostX64\x64\cl.exe @C:\Users\SRINIV~1.MAR\AppData\Local\Temp\testCXXCompiler.cxx.obj.10680.0.jom
+testCXXCompiler.cxx
+Linking CXX executable cmTC_b2a87.exe
+	C:\cmake-3.16.0-rc2-win64-x64\bin\cmake.exe -E vs_link_exe --intdir=CMakeFiles\cmTC_b2a87.dir --rc=C:\PROGRA~2\WI3CF2~1\10\bin\100261~1.0\x64\rc.exe --mt=C:\PROGRA~2\WI3CF2~1\10\bin\100261~1.0\x64\mt.exe --manifests  -- C:\PROGRA~1\MICROS~1\18\COMMUN~1\VC\Tools\MSVC\1429~1.301\bin\HostX64\x64\link.exe /nologo @CMakeFiles\cmTC_b2a87.dir\objects1.rsp @C:\Users\SRINIV~1.MAR\AppData\Local\Temp\cmTC_b2a87.exe.10680.547.jom
+
+
+
+Detecting CXX compiler ABI info compiled with the following output:
+Change Dir: C:/Users/srinivas.mareddi/Documents/DockableWindows/build/Desktop_Qt_5_15_2_MSVC2019_64bit_Debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):jom /nologo cmTC_873a2\fast && jom: parallel job execution disabled for Makefile
+	C:\Qt\Tools\QtCreator\bin\jom\jom.exe -f CMakeFiles\cmTC_873a2.dir\build.make /nologo -L CMakeFiles\cmTC_873a2.dir\build
+Building CXX object CMakeFiles/cmTC_873a2.dir/CMakeCXXCompilerABI.cpp.obj
+	C:\PROGRA~1\MICROS~1\18\COMMUN~1\VC\Tools\MSVC\1429~1.301\bin\HostX64\x64\cl.exe @C:\Users\SRINIV~1.MAR\AppData\Local\Temp\CMakeCXXCompilerABI.cpp.obj.3424.16.jom
+CMakeCXXCompilerABI.cpp
+Linking CXX executable cmTC_873a2.exe
+	C:\cmake-3.16.0-rc2-win64-x64\bin\cmake.exe -E vs_link_exe --intdir=CMakeFiles\cmTC_873a2.dir --rc=C:\PROGRA~2\WI3CF2~1\10\bin\100261~1.0\x64\rc.exe --mt=C:\PROGRA~2\WI3CF2~1\10\bin\100261~1.0\x64\mt.exe --manifests  -- C:\PROGRA~1\MICROS~1\18\COMMUN~1\VC\Tools\MSVC\1429~1.301\bin\HostX64\x64\link.exe /nologo @CMakeFiles\cmTC_873a2.dir\objects1.rsp @C:\Users\SRINIV~1.MAR\AppData\Local\Temp\cmTC_873a2.exe.3424.234.jom
+
+
+
