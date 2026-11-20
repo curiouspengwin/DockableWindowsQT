@@ -42,9 +42,9 @@ Window {
         windowId: browserWin.myWindowId
     }
 
-    function selectFirstAvailableTab() {
+    function selectLastAvailableTab() {
         if (localProxy.rowCount() > 0) {
-            activeMasterIndex = localProxy.mapToMasterIndex(0)
+            activeMasterIndex = localProxy.mapToMasterIndex(localProxy.rowCount()-1)
         } else {
             activeMasterIndex = -1
         }
@@ -60,29 +60,48 @@ Window {
     }
 
     // Listen for changes in the master C++ model
+    // Connections {
+    //     target: browserWin.masterModel
+
+    //     function onDataChanged(topLeft, bottomRight, roles) {
+    //         var changedMasterIdx = topLeft.row
+    //         var proxyRow = localProxy.mapFromMasterIndex(changedMasterIdx)
+    //         console.log(proxyRow)
+
+    //         // ONLY change active tab selection when a tab moves between windows (roleOwnerWindow = 260)
+    //         // Ignore OrderRole (261) changes so reordering doesn't hijack your active tab!
+    //         if (roles.indexOf(browserWin.roleOwnerWindow) !== -1) {
+    //             // var proxyRow = localProxy.mapFromMasterIndex(changedMasterIdx)
+    //             if (proxyRow >= 0) {
+    //                 // Tab arrived in THIS window -> select it
+    //                 browserWin.activeMasterIndex = changedMasterIdx
+    //             } else if (browserWin.activeMasterIndex === changedMasterIdx) {
+    //                 // Active tab left THIS window -> select another local tab
+    //                 browserWin.selectLastAvailableTab()
+    //             }
+    //         }
+    //     }
+    // }
     Connections {
-        target: browserWin.masterModel
+            target: localProxy
 
-        function onDataChanged(topLeft, bottomRight, roles) {
-            var changedMasterIdx = topLeft.row
+            function onRowsInserted(parent, first, last) {
+                // A tab arrived in this window -> select it immediately
+                browserWin.activeMasterIndex = localProxy.mapToMasterIndex(first)
+            }
 
-            // ONLY change active tab selection when a tab moves between windows (roleOwnerWindow = 260)
-            // Ignore OrderRole (261) changes so reordering doesn't hijack your active tab!
-            if (roles.indexOf(browserWin.roleOwnerWindow) !== -1) {
-                var proxyRow = localProxy.mapFromMasterIndex(changedMasterIdx)
-
-                if (proxyRow >= 0) {
-                    // Tab arrived in THIS window -> select it
-                    browserWin.activeMasterIndex = changedMasterIdx
-                } else if (browserWin.activeMasterIndex === changedMasterIdx) {
-                    // Active tab left THIS window -> select another local tab
-                    browserWin.selectFirstAvailableTab()
+            function onRowsRemoved(parent, first, last) {
+                // If the active tab was the one that left this window, fall back to the last tab
+                if (localProxy.mapFromMasterIndex(browserWin.activeMasterIndex) < 0) {
+                    browserWin.selectLastAvailableTab()
                 }
             }
         }
-    }
 
-    Component.onCompleted: selectFirstAvailableTab()
+    Component.onCompleted: {
+        selectLastAvailableTab()
+        console.log(`Window: ${myWindowId} loaded.`)
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -97,10 +116,25 @@ Window {
             height: 42
             color: "#dfe1e5"
 
+            property int dropIndicatorSlot: -1
+
+            // Blue insertion marker
+            Rectangle {
+                visible: tabBar.dropIndicatorSlot >= 0
+                width: 3
+                height: 28
+                radius: 1.5
+                color: "#1a73e8"
+                y: 6
+                x: browserWin.leftMargin + tabBar.dropIndicatorSlot * (browserWin.tabWidth + browserWin.tabSpacing) - 2
+                z: 10
+            }
+
             Row {
                 anchors.fill: parent
                 anchors.leftMargin: browserWin.leftMargin
                 anchors.topMargin: 6
+                anchors.bottomMargin: 4
                 spacing: browserWin.tabSpacing
 
                 Repeater {
@@ -110,10 +144,10 @@ Window {
                     delegate: Rectangle {
                         id: tabDelegate
                         width: browserWin.tabWidth
-                        height: 36
+                        height: 32
                         radius: 6
 
-                        readonly property int myMasterIndex: localProxy.mapToMasterIndex(index)
+                        readonly property int myMasterIndex: model.masterIndex
                         readonly property bool isActive: (myMasterIndex === browserWin.activeMasterIndex)
                         readonly property bool isBeingDragged: (myMasterIndex === browserWin.draggedMasterIndex)
 
@@ -150,6 +184,7 @@ Window {
                                 if (!isDragging) {
                                     if (Math.abs(mouse.x - pressPos.x) > 6 || Math.abs(mouse.y - pressPos.y) > 6) {
                                         isDragging = true
+                                        tabBar.dropIndicatorSlot = 1 // Change slot value based on position
                                         browserWin.appController.ghostTab.tabTitle = model.tabTitle
                                         browserWin.appController.ghostTab.visible = true
                                     }
@@ -169,6 +204,7 @@ Window {
                                     // Submit the final drop coordinates to C++ once
                                     browserWin.appController.handleTabDrop(tabDelegate.myMasterIndex, globalPos.x, globalPos.y)
                                 }
+                                tabBar.dropIndicatorSlot = -1
                                 isDragging = false
                             }
                         }
@@ -183,51 +219,119 @@ Window {
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            color: "#f0f0f0"
 
-            property int activeProxyRow: (browserWin.activeMasterIndex >= 0)
-                                         ? localProxy.mapFromMasterIndex(browserWin.activeMasterIndex)
-                                         : -1
+            // Active tab views (automatically reactive to proxy inserts, removals, and data changes)
+            Repeater {
+                id: contentRepeater
+                model: localProxy
 
-            function getActiveRole(roleId) {
-                if (activeProxyRow < 0) return ""
-                return localProxy.data(localProxy.index(activeProxyRow, 0), roleId)
-            }
+                delegate: Rectangle {
+                    anchors.fill: parent
+                    readonly property int myMasterIndex: model.masterIndex
 
-            color: activeProxyRow >= 0 ? getActiveRole(browserWin.roleColor) : "#f0f0f0"
+                    visible: myMasterIndex === browserWin.activeMasterIndex
+                    color: model.pageColor
 
-            Column {
-                anchors.centerIn: parent
-                spacing: 14
+                    Column {
+                        anchors.centerIn: parent
+                        spacing: 14
 
-                Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: parent.parent.activeProxyRow >= 0
-                          ? parent.parent.getActiveRole(browserWin.roleTitle)
-                          : "No Tabs Open"
-                    font.pixelSize: 28
-                    font.bold: true
-                }
+                        Text {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: model.tabTitle
+                            font.pixelSize: 28
+                            font.bold: true
+                        }
 
-                Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: parent.parent.activeProxyRow >= 0
-                          ? parent.parent.getActiveRole(browserWin.roleContent)
-                          : "Drag a tab here to view it"
-                    font.pixelSize: 16
-                    color: "#555555"
-                }
+                        Text {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: model.contentText
+                            font.pixelSize: 16
+                            color: "#555555"
+                        }
 
-                Button {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    visible: parent.parent.activeProxyRow >= 0
-                    text: "Move Tab to Window " + browserWin.otherWindowId
-                    onClicked: {
-                        // -1 tells C++ to append it to the end of the target window
-                        browserWin.masterModel.moveTab(
-                                    browserWin.activeMasterIndex, browserWin.otherWindowId, -1)
+                        Button {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: "Move Tab to Window " + browserWin.otherWindowId
+                            onClicked: {
+                                browserWin.masterModel.moveTab(
+                                            myMasterIndex, browserWin.otherWindowId, -1)
+                            }
+                        }
                     }
                 }
             }
-        }
+
+                // Empty window fallback
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 14
+                    visible: contentRepeater.count === 0
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "No Tabs Open"
+                        font.pixelSize: 28
+                        font.bold: true
+                    }
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "Drag a tab here to view it"
+                        font.pixelSize: 16
+                        color: "#555555"
+                    }
+                }
+            }
+        // Rectangle {
+        //     Layout.fillWidth: true
+        //     Layout.fillHeight: true
+
+        //     property int activeProxyRow: (browserWin.activeMasterIndex >= 0)
+        //                                  ? localProxy.mapFromMasterIndex(browserWin.activeMasterIndex)
+        //                                  : -1
+
+        //     function getActiveRole(roleId) {
+        //         if (activeProxyRow < 0) return ""
+        //         return localProxy.data(localProxy.index(activeProxyRow, 0), roleId)
+        //     }
+
+        //     color: activeProxyRow >= 0 ? getActiveRole(browserWin.roleColor) : "#f0f0f0"
+
+        //     Column {
+        //         anchors.centerIn: parent
+        //         spacing: 14
+
+        //         Text {
+        //             anchors.horizontalCenter: parent.horizontalCenter
+        //             text: parent.parent.activeProxyRow >= 0
+        //                   ? parent.parent.getActiveRole(browserWin.roleTitle)
+        //                   : "No Tabs Open"
+        //             font.pixelSize: 28
+        //             font.bold: true
+        //         }
+
+        //         Text {
+        //             anchors.horizontalCenter: parent.horizontalCenter
+        //             text: parent.parent.activeProxyRow >= 0
+        //                   ? parent.parent.getActiveRole(browserWin.roleContent)
+        //                   : "Drag a tab here to view it"
+        //             font.pixelSize: 16
+        //             color: "#555555"
+        //         }
+
+        //         Button {
+        //             anchors.horizontalCenter: parent.horizontalCenter
+        //             visible: parent.parent.activeProxyRow >= 0
+        //             text: "Move Tab to Window " + browserWin.otherWindowId
+        //             onClicked: {
+        //                 // -1 tells C++ to append it to the end of the target window
+        //                 browserWin.masterModel.moveTab(
+        //                             browserWin.activeMasterIndex, browserWin.otherWindowId, -1)
+        //             }
+        //         }
+        //     }
+        // }
     }
 }

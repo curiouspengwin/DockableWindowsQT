@@ -15,7 +15,7 @@ QtObject {
     // FLOATING GHOST TAB (Used when dragging across windows)
     property GhostTab ghostTab: GhostTab {}
 
-    // Check if a global (x,y) ppoint falls inside a window
+    // Check if a global (x,y) point falls inside a window
     function isPointInsideWindow(win, globalX, globalY) {
             if (!win || !win.visible) return false
             return (globalX >= win.x && globalX <= (win.x + win.width) &&
@@ -62,6 +62,8 @@ QtObject {
             globalTabModel.setProperty(masterIndex, "ownerWindow", 2)
         }
     }
+
+
 
     // 2. Window 1
     property BrowserWindow windowOne: BrowserWindow{

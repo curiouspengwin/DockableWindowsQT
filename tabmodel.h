@@ -21,20 +21,25 @@ class TabModel : public QAbstractListModel
 
 public:
     // Custom roles exposed to QML
+    /*Instead of calling localProxy.mapToMasterIndex(index) inside QML bindings, return index.row() directly as a role from TabModel.
+     * QML automatically updates model.masterIndex whenever layoutChanged fires.*/
     enum TabRoles{
+        // Qt::UserRole is 256. Denotes the starting point
         TitleRole = Qt::UserRole + 1,
-        ColorRole,
+        ColorRole, // Defaults to UserRole+2 ...
         ContentRole,
         OwnerWindowRole,
-        OrderRole
+        OrderRole,
+        // Adding MasterIndexRole and calling index.row() in QML
+        MasterIndexRole
     };
 
     explicit TabModel(QObject *parent = nullptr);
 
-    //Required QAbstractListModel overrides - These overrides have to be made
+    // Required QAbstractListModel overrides - These overrides have to be made
     // Returns the total number of items in the list
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    // Returns the data at index
+    // Returns the data at index and role
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     // Required when exposing to QML; Returns a hash mapping integer roleIDs to QByteArr property names
     QHash<int, QByteArray> roleNames() const override;
